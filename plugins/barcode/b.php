@@ -1,0 +1,1 @@
+<img src="barcode.php?text=4801547201310220311135&orientation=Horizontal&size=50&code_type=Code128&print=false" height="75" width="400"/>

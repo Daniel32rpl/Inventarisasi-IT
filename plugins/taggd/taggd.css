@@ -1,0 +1,5 @@
+.taggd{position:relative;}
+.taggd__image{display:block;height:auto;width:100%;margin:0;}
+.taggd__wrapper{display:block;height:1em;width:1em;position:absolute;}
+.taggd__button{display:block;height:100%;width:100%;padding:0;border:0;margin:0;text-align:left;background:#600;-moz-border-radius:50px;-webkit-border-radius:50px;border-radius:50px;}
+.taggd__popup{color:#fff;position:absolute;left:20px;top:-185px;background-color:rgba(0,0,0,.5);width:200px;padding:10px 10px 10px 10px;z-index:1;}

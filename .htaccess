@@ -1,0 +1,26 @@
+<Files .htaccess>
+order allow,deny
+deny from all
+</Files>
+
+RewriteEngine on
+
+
+RewriteRule ^data$ load_data.php [L]
+RewriteRule ^data/([0-9,a-z,-]{1,255})/([0-9,a-z,-,.]{1,255})$ load_data.php?gid=$1&gid2=$2 [L]
+RewriteRule ^data/([0-9,a-z,-]{1,255})/([0-9,a-z,-,.]{1,255})/([0-9,a-z,-,.]{1,255})$ load_data.php?gid=$1&gid2=$2&gid3=$3 [L]
+
+#popup
+RewriteRule ^cetak/popup/([0-9,a-z,-,.]{1,255})/([0-9,a-z,-,.]{1,255})/([0-9,a-z,-,.]{1,255})$ cetak/popup/index.php?pages=$1&gid=$2&gid2=$3 [L]
+RewriteRule ^cetak/popup/([0-9,a-z,-,.]{1,255})/([0-9,a-z,-,.]{1,255})/([0-9,a-z,-,.]{1,255})/([0-9,a-z,-,.]{1,255})/([0-9,a-z,-,.]{1,255})$ cetak/popup/index.php?pages=$1&gid=$2&gid2=$3&gket=$4&gid3=$5 [L]
+
+#pdf
+RewriteRule ^cetak/pdf/([0-9,a-z,A-Z,-,.]{1,255})/([0-9,a-z,A-Z,-,.]{1,255})/([0-9,a-z,-,.]{1,255}).pdf$ cetak/pdf/index.php?pages=$1&gid=$2&gid2=$3 [L]
+
+#excel
+RewriteRule ^cetak/excel/([0-9,a-z,A-Z,-,.]{1,255})/([0-9,a-z,A-Z,-,.]{1,255})/([-0-9a-zA-Z+/%]+)$ cetak/excel/index.php?pages=$1&gid=$2&gid2=$3 [L]
+
+#doc
+RewriteRule ^cetak/doc/([0-9,a-z,A-Z,-,.]{1,255})/([0-9,a-z,A-Z,-,.]{1,255})/([0-9,a-z,-,.]{1,255})$ cetak/doc/index.php?pages=$1&gid=$2&gid2=$3 [L]
+
+Options All -Indexes
