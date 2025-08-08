@@ -1,30 +1,39 @@
 <?php
 if (preg_match("/\bindex.php\b/i", $_SERVER['REQUEST_URI'])) exit;
 
+$judul = "Jenis Inventarisasi";
+$current_script = basename($_SERVER['PHP_SELF']);
+$query_parts = $_GET;
+
 switch ($act) {
     default:
-        echo "<h3 class='box-title'>Data Jenis Inventarisasi</h3>";
-        echo "<a href=\"$link_back&act=input\" class=\"btn btn-primary\"><i class=\"fa fa-plus\"></i> Tambah Jenis</a><br><br>";
+        echo "<div class=\"box\">
+            <div class=\"box-header border-bottom1\">
+                <h3 class=\"box-title\">Data Jenis Inventarisasi</h3>
+            </div>
+
+            <div class=\"box-body\">
+                <a href=\"$link_back&act=input\" class=\"btn btn-primary\"><i class=\"fa fa-plus\"></i> Tambah Jenis</a>
+                <div class=\"clearfix\"></div><br />
+
+                <div class=\"table-responsive\">
+                    <table class=\"table table-bordered table-hover\">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Jenis</th>
+                                <th>Kode</th>
+                                <th>Keterangan</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>";
 
         $sql = "SELECT * FROM jenis_inventarisasi ORDER BY id DESC";
         $query = mysqli_query($db_result, $sql);
-
-        echo "<div class='panel panel-default'>
-        <div class='panel-body'>
-        <div class='table-responsive'>
-        <table class='table table-bordered'>
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama Jenis</th>
-                <th>Kode</th>
-                <th>Keterangan</th>
-                <th>Status</th>
-                <th>Aksi</th>
-            </tr>
-        </thead><tbody>";
-
         $no = 1;
+
         while ($r = mysqli_fetch_array($query)) {
             echo "<tr>
                 <td>$no</td>
@@ -39,7 +48,12 @@ switch ($act) {
             </tr>";
             $no++;
         }
-        echo "</tbody></table></div></div></div>";
+
+        echo "</tbody>
+                    </table>
+                </div>
+            </div>
+        </div>";
         break;
 
     case "input":
@@ -51,11 +65,12 @@ switch ($act) {
 
         echo "<div class='row'>
         <div class='col-md-12'>
-            <div class='panel panel-default'>
-                <div class='panel-heading'>
-                    <h3 class='panel-title'>Form Jenis Inventarisasi</h3>
+            <div class=\"box\">
+                <div class=\"box-header border-bottom1\">
+                    <h3 class=\"box-title\">Form Input &raquo; $judul</h3>
                 </div>
-                <div class='panel-body'>
+
+                <div class='box-body'>
                     <form method='post' action='$link_back&act=proses' class='form-horizontal'>
                         <input type='hidden' name='id' value='" . ($_GET['gid'] ?? '') . "'>
 
@@ -84,9 +99,11 @@ switch ($act) {
                         </div>
 
                         <div class='form-group'>
-                            <div class='col-sm-offset-2 col-sm-5'>
-                                <button type='submit' class='btn btn-success'><i class='fa fa-save'></i> Simpan</button>
-                                <a href='$link_back' class='btn btn-default'><i class='fa fa-caret-left'></i> Kembali</a>
+                            <div class='col-sm-offset-2 col-sm-10'>
+                                <a href=\"" . $current_script . "?" . http_build_query(array_diff_key($query_parts, ['act' => ''])) . "\" class='btn bg-navy'>
+                                    <i class='fa fa-caret-left'></i> Kembali
+                                </a>
+                                  <button type='submit' class='btn btn-success'><i class='fa fa-save'></i> Simpan</button>
                             </div>
                         </div>
                     </form>
@@ -102,7 +119,6 @@ switch ($act) {
         $keterangan = trim($_POST['keterangan']);
         $status = $_POST['status'];
 
-        // Menentukan kode berdasarkan nama jenis
         switch (strtolower($nama_jenis)) {
             case 'perangkat komputer': $kode = 'PC'; break;
             case 'perangkat input/output': $kode = 'IO'; break;
@@ -139,9 +155,9 @@ switch ($act) {
 
     case "hapus":
         $gid = $_GET['gid'];
-
         mysqli_query($db_result, "DELETE FROM inventarisasi_barang WHERE id_jenis = '$gid'");
         $sql = "DELETE FROM jenis_inventarisasi WHERE id = '$gid'";
+
         if (mysqli_query($db_result, $sql)) {
             echo "<div class='alert alert-success'>Data berhasil dihapus</div>";
         } else {
@@ -152,3 +168,4 @@ switch ($act) {
         break;
 }
 ?>
+
