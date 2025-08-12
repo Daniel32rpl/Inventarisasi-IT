@@ -1,50 +1,47 @@
 <?php
-if (!isset($_GET['id_jenis']) || !is_numeric($_GET['id_jenis'])) {
-    echo "001";
-    exit;
-}
-
 $db_result = mysqli_connect("localhost", "root", "", "simv2");
 if (!$db_result) {
-    echo "001";
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+$id_jenis = $_GET['id_jenis'] ?? '';
+$lokasi = $_GET['lokasi'] ?? '';
+
+if (empty($id_jenis) || !is_numeric($id_jenis) || empty($lokasi)) {
+    echo "XX001"; // fallback default jika data tidak valid
     exit;
 }
 
-$id_jenis = (int)$_GET['id_jenis'];
-
-// Get the prefix for this jenis
-$prefix_query = mysqli_query($db_result, "SELECT kode FROM jenis_inventarisasi WHERE id = $id_jenis");
-if (!$prefix_query || mysqli_num_rows($prefix_query) == 0) {
-    echo "001";
+// Ambil kode jenis (prefix)
+$q_prefix = mysqli_query($db_result, "SELECT kode FROM jenis_inventarisasi WHERE id = " . (int)$id_jenis);
+if (!$q_prefix || mysqli_num_rows($q_prefix) == 0) {
+    echo "XX001"; // fallback jika tidak ditemukan
     exit;
 }
+$row_prefix = mysqli_fetch_assoc($q_prefix);
+$prefix = $row_prefix['kode']; // contoh: 'MB'
 
-$prefix_data = mysqli_fetch_array($prefix_query);
-$prefix = $prefix_data['kode'];
+// Escape lokasi untuk keamanan
+$lokasi_escaped = mysqli_real_escape_string($db_result, $lokasi);
 
-// Get the last number for this jenis
-$last_query = mysqli_query($db_result, "
-    SELECT kode_barang 
-    FROM inventarisasi_barang 
-    WHERE id_jenis = $id_jenis 
-    AND kode_barang LIKE '$prefix%' 
-    ORDER BY id DESC 
-    LIMIT 1
-");
+// Cari kode_barang terakhir dengan prefix tersebut dan lokasi yang sama
+$sql = "SELECT kode_barang FROM inventarisasi_barang 
+        WHERE id_jenis = " . (int)$id_jenis . " 
+        AND lokasi = '$lokasi_escaped'
+        AND kode_barang LIKE '$prefix%'
+        ORDER BY id DESC LIMIT 1";
 
-$next_number = 1;
-if ($last_query && mysqli_num_rows($last_query) > 0) {
-    $last_data = mysqli_fetch_array($last_query);
-    $last_kode = $last_data['kode_barang'];
-    
-    // Extract number from the end of the code
-    $number_part = substr($last_kode, strlen($prefix));
-    if (is_numeric($number_part)) {
-        $next_number = (int)$number_part + 1;
-    }
+$result = mysqli_query($db_result, $sql);
+if ($result && mysqli_num_rows($result) > 0) {
+    $row = mysqli_fetch_assoc($result);
+    $last_kode = $row['kode_barang']; // contoh: MB005
+    $angka = (int)substr($last_kode, strlen($prefix)); // ambil 005
+    $angka++; // naikkan jadi 006
+    echo $prefix . str_pad($angka, 3, '0', STR_PAD_LEFT); // hasil: MB006
+} else {
+    // jika belum ada, mulai dari 001
+    echo $prefix . "001";
 }
-
-echo str_pad($next_number, 3, '0', STR_PAD_LEFT);
 
 mysqli_close($db_result);
 ?>
