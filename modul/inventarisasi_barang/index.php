@@ -267,7 +267,69 @@ switch ($act) {
         <meta http-equiv=\"refresh\" content=\"2;url=$link_back\">";
         break;
 
-    case "proses":
+     case "proses":
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo "<div class='alert alert-danger'>Invalid request method</div>";
+            break;
+        }
+        if (empty($_POST['kode_barang']) || empty($_POST['id_jenis'])) {
+            echo "<div class='alert alert-danger'>Kode barang dan jenis wajib diisi!</div>";
+            echo "<meta http-equiv='refresh' content='2;url=$link_back&act=input'>";
+            break;
+        }
+        $data = [];
+        $fields = [
+            'id', 'kode_barang', 'id_jenis', 'nama_perangkat', 'merek_model', 
+            'serial_number', 'spesifikasi', 'lokasi', 'tanggal_pembelian', 
+            'kondisi', 'status', 'kepemilikan', 'keterangan', 'mouse_pad'
+        ];
+        foreach ($fields as $field) {
+            $data[$field] = isset($_POST[$field]) ? mysqli_real_escape_string($db_result, trim($_POST[$field])) : '';
+        }
+        if ($data['status'] === 'Aktif') {
+            $data['status'] = 1;
+        } elseif ($data['status'] === 'Tidak Aktif') {
+            $data['status'] = 0;
+        }
+        if (!is_numeric($data['id_jenis'])) {
+            echo "<div class='alert alert-danger'>ID Jenis harus berupa angka!</div>";
+            break;
+        }
+        try {
+            if (empty($data['id']) || !is_numeric($data['id'])) {
+                $sqld = "INSERT INTO inventarisasi_barang (
+                            kode_barang, id_jenis, nama_perangkat, merek_model, serial_number,
+                            spesifikasi, lokasi, tanggal_pembelian, kondisi, status,
+                            kepemilikan, keterangan, mouse_pad, tgl_input, tgl_update
+                        ) VALUES (
+                            '{$data['kode_barang']}', '{$data['id_jenis']}', '{$data['nama_perangkat']}', 
+                            '{$data['merek_model']}', '{$data['serial_number']}', '{$data['spesifikasi']}', 
+                            '{$data['lokasi']}', " . (empty($data['tanggal_pembelian']) ? 'NULL' : "'{$data['tanggal_pembelian']}'") . ", 
+                            '{$data['kondisi']}', '{$data['status']}', '{$data['kepemilikan']}', 
+                            '{$data['keterangan']}', '{$data['mouse_pad']}', NOW(), NOW()
+                        )";
+            } else {
+                $id = (int)$data['id'];
+                $sqld = "UPDATE inventarisasi_barang SET
+                            kode_barang='{$data['kode_barang']}', id_jenis='{$data['id_jenis']}', 
+                            nama_perangkat='{$data['nama_perangkat']}', merek_model='{$data['merek_model']}', 
+                            serial_number='{$data['serial_number']}', spesifikasi='{$data['spesifikasi']}',
+                            lokasi='{$data['lokasi']}', tanggal_pembelian=" . (empty($data['tanggal_pembelian']) ? 'NULL' : "'{$data['tanggal_pembelian']}'") . ",
+                            kondisi='{$data['kondisi']}', status='{$data['status']}', 
+                            kepemilikan='{$data['kepemilikan']}', keterangan='{$data['keterangan']}',
+                            mouse_pad='{$data['mouse_pad']}', tgl_update=NOW()
+                        WHERE id = $id";
+            }
+            if (mysqli_query($db_result, $sqld)) {
+                echo "<div class='alert alert-success'>Data berhasil disimpan</div>";
+                echo "<meta http-equiv='refresh' content='1;url=$link_back'>";
+            } else {
+                throw new Exception(mysqli_error($db_result));
+            }
+        } catch (Exception $e) {
+            echo "<div class='alert alert-danger'>Gagal menyimpan data: " . $e->getMessage() . "</div>";
+            echo "<meta http-equiv='refresh' content='3;url=$link_back&act=input'>";
+        }
         break;
 }
 
