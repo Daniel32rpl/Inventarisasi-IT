@@ -19,27 +19,28 @@ if (!$q_prefix || mysqli_num_rows($q_prefix) == 0) {
     exit;
 }
 $row_prefix = mysqli_fetch_assoc($q_prefix);
-$prefix = $row_prefix['kode']; // contoh: 'MB'
+$prefix = $row_prefix['kode']; // contoh: 'PC', 'IO', 'ST'
 
 // Escape lokasi untuk keamanan
 $lokasi_escaped = mysqli_real_escape_string($db_result, $lokasi);
 
-// Cari kode_barang terakhir dengan prefix tersebut dan lokasi yang sama
 $sql = "SELECT kode_barang FROM inventarisasi_barang 
-        WHERE id_jenis = " . (int)$id_jenis . " 
-        AND lokasi = '$lokasi_escaped'
-        AND kode_barang LIKE '$prefix%'
-        ORDER BY id DESC LIMIT 1";
+        WHERE lokasi = '$lokasi_escaped'
+        AND kode_barang IS NOT NULL 
+        AND kode_barang != ''
+        AND LENGTH(kode_barang) >= 4
+        ORDER BY CAST(SUBSTRING(kode_barang, -3) AS UNSIGNED) DESC 
+        LIMIT 1";
 
 $result = mysqli_query($db_result, $sql);
 if ($result && mysqli_num_rows($result) > 0) {
     $row = mysqli_fetch_assoc($result);
-    $last_kode = $row['kode_barang']; // contoh: MB005
-    $angka = (int)substr($last_kode, strlen($prefix)); // ambil 005
-    $angka++; // naikkan jadi 006
-    echo $prefix . str_pad($angka, 3, '0', STR_PAD_LEFT); // hasil: MB006
+    $last_kode = $row['kode_barang']; // contoh: IO002, PC005, ST003
+    $angka = (int)substr($last_kode, -3); // ambil 002, 005, 003
+    $angka++; // naikkan jadi 003, 006, 004
+    echo $prefix . str_pad($angka, 3, '0', STR_PAD_LEFT); // hasil: PC003, IO006, ST004
 } else {
-    // jika belum ada, mulai dari 001
+    // jika belum ada data di lokasi ini, mulai dari 001
     echo $prefix . "001";
 }
 
